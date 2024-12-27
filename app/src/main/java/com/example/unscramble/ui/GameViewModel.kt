@@ -1,4 +1,5 @@
 package com.example.unscramble.ui
+import androidx.compose.runtime.currentRecomposeScope
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import com.example.unscramble.data.allWords
@@ -7,6 +8,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
+import com.example.unscramble.data.SCORE_INCREASE
 import com.example.unscramble.ui.GameUiState
 import kotlinx.coroutines.flow.update
 
@@ -56,7 +58,9 @@ class GameViewModel: ViewModel() {
     //valider le mot et modifier score
     fun checkUserGuess(){
         if(userGuess.equals(currentWord, ignoreCase = true)){
-
+            //increase score
+            val updatedScore = _uiState.value.score.plus(SCORE_INCREASE)
+            updateGameState(updatedScore)
         }else{
             //user's guess wrong, show an error
             _uiState.update { currentState ->
@@ -64,6 +68,23 @@ class GameViewModel: ViewModel() {
             }
         }
         //reset user guess
+        updateUserGuess("")
+    }
+
+    private fun updateGameState(updatedScore: Int){
+        _uiState.update{ currentState ->
+            currentState.copy(
+                isGuessedWordWrong = false,
+                score = updatedScore,
+                currentScrambleWord = pickRandomWordAndShuffle(),
+                currentWordCount = currentState.currentWordCount.inc(),
+            )
+        }
+    }
+
+    //methode pour passer un mot
+    fun skipWord(){
+        updateGameState(_uiState.value.score)
         updateUserGuess("")
     }
 }
